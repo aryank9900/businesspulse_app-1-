@@ -1,0 +1,1251 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BusinessPulse Dashboard</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    /* ── CSS Variables ── */
+    :root {
+      --bg:        #0a0b14;
+      --surface:   #12141f;
+      --surface2:  #1a1d2e;
+      --surface3:  #222640;
+      --border:    rgba(99,102,241,0.15);
+      --text:      #e2e8f0;
+      --muted:     #64748b;
+      --brand:     #6366f1;
+      --brand2:    #8b5cf6;
+      --accent:    #f59e0b;
+      --green:     #10b981;
+      --red:       #ef4444;
+      --blue:      #3b82f6;
+      --pink:      #ec4899;
+      --cyan:      #06b6d4;
+      --card-bg:   rgba(18,20,31,0.9);
+      --shadow:    0 4px 24px rgba(0,0,0,0.4);
+    }
+    [data-theme="light"] {
+      --bg:       #f1f5f9;
+      --surface:  #ffffff;
+      --surface2: #f8fafc;
+      --surface3: #e2e8f0;
+      --border:   rgba(99,102,241,0.2);
+      --text:     #0f172a;
+      --muted:    #64748b;
+      --card-bg:  rgba(255,255,255,0.95);
+      --shadow:   0 4px 24px rgba(99,102,241,0.1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      transition: background 0.3s, color 0.3s;
+    }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 240px; z-index: 100;
+      background: var(--surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      padding: 1.5rem 0;
+      transition: transform 0.3s;
+    }
+    .sidebar-logo {
+      padding: 0 1.5rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 1rem;
+    }
+    .logo-text {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.2rem; font-weight: 800;
+      background: linear-gradient(135deg, #6366f1, #a78bfa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      text-decoration: none;
+    }
+    .logo-tag {
+      font-size: 0.65rem; color: var(--muted); font-weight: 600;
+      letter-spacing: 0.8px; text-transform: uppercase; margin-top: 2px;
+    }
+    .nav-section {
+      padding: 0 1rem;
+      font-size: 0.62rem; font-weight: 700; letter-spacing: 1px;
+      color: var(--muted); text-transform: uppercase;
+      margin: 0.8rem 0 0.4rem;
+    }
+    .nav-item {
+      display: flex; align-items: center; gap: 0.7rem;
+      padding: 0.6rem 1.5rem;
+      font-size: 0.82rem; font-weight: 500; color: var(--muted);
+      text-decoration: none; border-radius: 0;
+      transition: all 0.2s; cursor: pointer;
+      border-left: 3px solid transparent;
+    }
+    .nav-item:hover { color: var(--text); background: var(--surface2); }
+    .nav-item.active {
+      color: var(--brand); background: rgba(99,102,241,0.1);
+      border-left-color: var(--brand); font-weight: 600;
+    }
+    .nav-item i { width: 16px; text-align: center; }
+    .sidebar-footer {
+      margin-top: auto; padding: 1rem 1.5rem;
+      border-top: 1px solid var(--border);
+      font-size: 0.72rem; color: var(--muted);
+    }
+
+    /* ── Main Layout ── */
+    .main-wrap {
+      margin-left: 240px;
+      min-height: 100vh;
+      display: flex; flex-direction: column;
+    }
+
+    /* ── Top Bar ── */
+    .topbar {
+      position: sticky; top: 0; z-index: 99;
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 0.85rem 2rem;
+      display: flex; align-items: center; justify-content: space-between;
+      backdrop-filter: blur(10px);
+    }
+    .topbar-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1rem; font-weight: 800; color: var(--text);
+    }
+    .topbar-meta { font-size: 0.72rem; color: var(--muted); margin-top: 1px; }
+    .topbar-actions { display: flex; align-items: center; gap: 0.6rem; }
+    .btn-icon {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 8px; padding: 0.45rem 0.8rem;
+      font-size: 0.78rem; font-weight: 600; color: var(--muted);
+      cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 0.4rem;
+    }
+    .btn-icon:hover { color: var(--text); border-color: var(--brand); background: rgba(99,102,241,0.08); }
+    .btn-primary-sm {
+      background: linear-gradient(135deg, var(--brand), var(--brand2));
+      border: none; border-radius: 8px; padding: 0.45rem 1rem;
+      font-size: 0.78rem; font-weight: 700; color: #fff;
+      cursor: pointer; display: flex; align-items: center; gap: 0.4rem;
+      transition: all 0.2s;
+    }
+    .btn-primary-sm:hover { opacity: 0.88; transform: translateY(-1px); }
+
+    /* ── Dashboard Content ── */
+    .dash-content {
+      padding: 1.8rem 2rem;
+      flex: 1;
+    }
+
+    /* ── Business Header ── */
+    .biz-header {
+      background: linear-gradient(135deg, rgba(99,102,241,0.15), rgba(139,92,246,0.08));
+      border: 1px solid var(--border);
+      border-radius: 20px; padding: 1.8rem 2rem;
+      margin-bottom: 1.8rem;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+    }
+    .biz-avatar {
+      width: 56px; height: 56px; border-radius: 14px;
+      background: linear-gradient(135deg, var(--brand), var(--brand2));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; color: #fff; flex-shrink: 0;
+    }
+    .biz-name {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.5rem; font-weight: 800; color: var(--text); line-height: 1.1;
+    }
+    .biz-meta { font-size: 0.8rem; color: var(--muted); margin-top: 3px; }
+    .biz-badge {
+      background: rgba(16,185,129,0.12); border: 1px solid rgba(16,185,129,0.3);
+      border-radius: 50px; padding: 0.3rem 0.8rem;
+      font-size: 0.72rem; font-weight: 700; color: var(--green);
+      letter-spacing: 0.5px;
+    }
+    .timestamp { font-size: 0.72rem; color: var(--muted); }
+
+    /* ── KPI Cards ── */
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 1rem;
+      margin-bottom: 1.8rem;
+    }
+    .kpi-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.2rem 1.4rem;
+      position: relative; overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .kpi-card:hover { transform: translateY(-3px); box-shadow: var(--shadow); }
+    .kpi-card::before {
+      content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: var(--kpi-color, var(--brand));
+    }
+    .kpi-icon {
+      width: 36px; height: 36px; border-radius: 9px;
+      background: rgba(99,102,241,0.12);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.85rem; margin-bottom: 0.8rem;
+      color: var(--kpi-color, var(--brand));
+      background: var(--kpi-bg, rgba(99,102,241,0.1));
+    }
+    .kpi-value {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1.45rem; font-weight: 800; color: var(--text); line-height: 1;
+    }
+    .kpi-label { font-size: 0.72rem; color: var(--muted); font-weight: 500; margin-top: 4px; }
+    .kpi-change {
+      font-size: 0.7rem; font-weight: 600;
+      display: inline-flex; align-items: center; gap: 2px;
+      margin-top: 0.5rem; padding: 2px 7px; border-radius: 50px;
+    }
+    .kpi-up { background: rgba(16,185,129,0.12); color: var(--green); }
+    .kpi-down { background: rgba(239,68,68,0.12); color: var(--red); }
+    .kpi-neutral { background: rgba(245,158,11,0.12); color: var(--accent); }
+
+    /* ── Charts ── */
+    .chart-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.4rem;
+      margin-bottom: 1.4rem;
+      transition: box-shadow 0.2s;
+    }
+    .chart-card:hover { box-shadow: var(--shadow); }
+    .chart-header {
+      display: flex; align-items: flex-start; justify-content: space-between;
+      margin-bottom: 1.2rem; flex-wrap: wrap; gap: 0.5rem;
+    }
+    .chart-title {
+      font-size: 0.88rem; font-weight: 700; color: var(--text);
+    }
+    .chart-sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+    .chart-badge {
+      font-size: 0.65rem; font-weight: 700;
+      background: rgba(99,102,241,0.1); border: 1px solid var(--border);
+      border-radius: 50px; padding: 0.2rem 0.6rem; color: var(--brand);
+    }
+    .chart-wrapper { position: relative; height: 240px; }
+    .chart-wrapper-sm { position: relative; height: 200px; }
+
+    /* ── Health Score ── */
+    .health-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 16px; padding: 1.8rem;
+      text-align: center; margin-bottom: 1.4rem;
+      transition: box-shadow 0.2s;
+    }
+    .health-card:hover { box-shadow: var(--shadow); }
+    .health-ring {
+      position: relative; width: 160px; height: 160px; margin: 0 auto 1rem;
+    }
+    .health-ring svg { transform: rotate(-90deg); }
+    .health-ring-center {
+      position: absolute; top: 50%; left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+    }
+    .health-score-num {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 2.2rem; font-weight: 900; line-height: 1;
+    }
+    .health-score-label { font-size: 0.65rem; color: var(--muted); font-weight: 600; letter-spacing: 0.5px; }
+    .health-status {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 1rem; font-weight: 800;
+      margin-bottom: 0.5rem;
+    }
+    .health-bar-wrap { height: 6px; background: var(--surface2); border-radius: 10px; overflow: hidden; }
+    .health-bar-fill { height: 100%; border-radius: 10px; transition: width 1.5s ease; }
+
+    /* ── Insights ── */
+    .insight-card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 14px; padding: 1.1rem 1.3rem;
+      margin-bottom: 0.8rem;
+      display: flex; align-items: flex-start; gap: 0.9rem;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .insight-card:hover { transform: translateX(4px); box-shadow: var(--shadow); }
+    .insight-icon {
+      width: 38px; height: 38px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+    }
+    .insight-title { font-size: 0.83rem; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+    .insight-text { font-size: 0.78rem; color: var(--muted); line-height: 1.55; }
+    .impact-badge {
+      font-size: 0.6rem; font-weight: 700; letter-spacing: 0.5px;
+      border-radius: 50px; padding: 2px 8px; margin-top: 5px;
+      display: inline-block;
+    }
+    .impact-high { background: rgba(239,68,68,0.12); color: var(--red); }
+    .impact-medium { background: rgba(245,158,11,0.12); color: var(--accent); }
+    .impact-low { background: rgba(16,185,129,0.12); color: var(--green); }
+    .impact-growth { background: rgba(99,102,241,0.12); color: var(--brand); }
+
+    /* ── Stats Table ── */
+    .stats-table { width: 100%; border-collapse: separate; border-spacing: 0 6px; }
+    .stats-table tr td {
+      padding: 0.6rem 0.8rem;
+      font-size: 0.8rem;
+    }
+    .stats-table tr td:first-child { color: var(--muted); }
+    .stats-table tr td:last-child { font-weight: 700; color: var(--text); text-align: right; }
+    .stats-table tr:hover td { background: var(--surface2); }
+    .stats-table tr td:first-child { border-radius: 8px 0 0 8px; padding-left: 1rem; }
+    .stats-table tr td:last-child { border-radius: 0 8px 8px 0; padding-right: 1rem; }
+
+    /* ── Section Heading ── */
+    .section-heading {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 0.82rem; font-weight: 800; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1.2px;
+      margin-bottom: 1rem;
+      display: flex; align-items: center; gap: 0.6rem;
+    }
+    .section-heading::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+
+    /* ── Progress Bars ── */
+    .metric-row { margin-bottom: 1rem; }
+    .metric-label { font-size: 0.75rem; color: var(--muted); font-weight: 500; margin-bottom: 4px; display: flex; justify-content: space-between; }
+    .metric-label span { font-weight: 700; color: var(--text); }
+    .metric-bar { height: 6px; background: var(--surface2); border-radius: 10px; overflow: hidden; }
+    .metric-fill { height: 100%; border-radius: 10px; transition: width 1.5s ease; }
+
+    /* ── Diagnosis Cards ── */
+    .diagnosis-card {
+      border-radius: 16px; padding: 0;
+      margin-bottom: 1rem; overflow: hidden;
+      border: 1px solid var(--border);
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .diagnosis-card:hover { transform: translateY(-2px); box-shadow: var(--shadow); }
+    .diagnosis-header {
+      padding: 1rem 1.3rem;
+      display: flex; align-items: center; gap: 0.9rem;
+      cursor: pointer; user-select: none;
+    }
+    .diagnosis-icon {
+      width: 40px; height: 40px; border-radius: 10px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+    }
+    .diagnosis-title { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+    .risk-badge {
+      font-size: 0.62rem; font-weight: 800; letter-spacing: 0.8px;
+      border-radius: 50px; padding: 3px 10px;
+      text-transform: uppercase; margin-left: auto; flex-shrink: 0;
+    }
+    .risk-critical { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid rgba(239,68,68,0.3); }
+    .risk-high     { background: rgba(249,115,22,0.15); color: #f97316; border: 1px solid rgba(249,115,22,0.3); }
+    .risk-medium   { background: rgba(245,158,11,0.15); color: #f59e0b; border: 1px solid rgba(245,158,11,0.3); }
+    .risk-low      { background: rgba(59,130,246,0.15);  color: #3b82f6; border: 1px solid rgba(59,130,246,0.3); }
+    .chevron { font-size: 0.75rem; color: var(--muted); transition: transform 0.3s; margin-left: 0.5rem; }
+    .diagnosis-body {
+      padding: 0 1.3rem 1.3rem;
+      display: none;
+      border-top: 1px solid var(--border);
+      padding-top: 1.1rem;
+    }
+    .diagnosis-body.open { display: block; }
+    .diag-section-label {
+      font-size: 0.62rem; font-weight: 800; letter-spacing: 1px;
+      text-transform: uppercase; margin-bottom: 0.4rem;
+      margin-top: 0.9rem;
+    }
+    .diag-flaw-text { font-size: 0.8rem; color: var(--muted); line-height: 1.6; }
+    .diag-fix-text  { font-size: 0.8rem; color: var(--text);  line-height: 1.6; }
+    .diag-impact {
+      background: rgba(16,185,129,0.08); border: 1px solid rgba(16,185,129,0.2);
+      border-radius: 8px; padding: 0.6rem 0.9rem; margin-top: 0.8rem;
+      font-size: 0.78rem; color: var(--green); font-weight: 600;
+    }
+    .diag-steps { list-style: none; margin-top: 0.8rem; }
+    .diag-steps li {
+      font-size: 0.78rem; color: var(--text);
+      padding: 0.35rem 0; display: flex; align-items: flex-start; gap: 0.6rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .diag-steps li:last-child { border-bottom: none; }
+    .step-num {
+      width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0;
+      background: var(--brand); color: #fff;
+      font-size: 0.6rem; font-weight: 800;
+      display: flex; align-items: center; justify-content: center;
+      margin-top: 1px;
+    }
+
+    /* ── Pitch Mode Banner ── */
+    .pitch-banner {
+      background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(249,115,22,0.08));
+      border: 1px solid rgba(239,68,68,0.25);
+      border-radius: 14px; padding: 1rem 1.3rem;
+      margin-bottom: 1.2rem;
+      display: flex; align-items: center; gap: 0.8rem;
+    }
+    .pitch-banner-icon { font-size: 1.3rem; color: #ef4444; }
+    .pitch-banner-title { font-size: 0.85rem; font-weight: 700; color: var(--text); }
+    .pitch-banner-sub { font-size: 0.75rem; color: var(--muted); }
+
+    /* ── Scrollbar ── */
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 10px; }
+
+    /* ── Mobile ── */
+    @media (max-width: 991px) {
+      .sidebar { transform: translateX(-100%); }
+      .sidebar.open { transform: translateX(0); }
+      .main-wrap { margin-left: 0; }
+      .dash-content { padding: 1rem; }
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .biz-header { padding: 1.2rem; }
+    }
+    @media (max-width: 480px) {
+      .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+      .kpi-value { font-size: 1.1rem; }
+    }
+
+    /* ── Print ── */
+    @media print {
+      .sidebar, .topbar, .no-print { display: none !important; }
+      .main-wrap { margin-left: 0; }
+      .dash-content { padding: 0; }
+    }
+
+    /* ── Animated counter ── */
+    .counting { animation: countIn 0.3s ease; }
+    @keyframes countIn { from { opacity:0; transform: translateY(8px); } to { opacity:1; transform: none; } }
+
+    /* ── Glow effects ── */
+    .glow-green { box-shadow: 0 0 20px rgba(16,185,129,0.2); }
+    .glow-blue  { box-shadow: 0 0 20px rgba(59,130,246,0.2); }
+    .glow-brand { box-shadow: 0 0 20px rgba(99,102,241,0.2); }
+
+    /* Mobile menu btn */
+    .mobile-menu-btn {
+      display: none; background: none; border: none;
+      color: var(--text); font-size: 1.2rem; cursor: pointer;
+    }
+    @media (max-width: 991px) { .mobile-menu-btn { display: block; } }
+  </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <a class="logo-text" href="/"><i class="fa-solid fa-chart-line me-2" style="font-size:1rem;color:#6366f1;-webkit-text-fill-color:#6366f1;"></i>BusinessPulse</a>
+    <div class="logo-tag">Analytics Platform v1.0</div>
+  </div>
+  <div class="nav-section">Overview</div>
+  <a class="nav-item active" onclick="scrollTo('overview')"><i class="fa-solid fa-gauge"></i> Dashboard</a>
+  <a class="nav-item" onclick="scrollTo('charts')"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+  <a class="nav-item" onclick="scrollTo('diagnosis')"><i class="fa-solid fa-stethoscope"></i> Business Diagnosis</a>
+  <a class="nav-item" onclick="scrollTo('insights')"><i class="fa-solid fa-lightbulb"></i> AI Insights</a>
+  <a class="nav-item" onclick="scrollTo('health')"><i class="fa-solid fa-heart-pulse"></i> Health Score</a>
+  <div class="nav-section">Actions</div>
+  <a class="nav-item" onclick="exportPDF()"><i class="fa-solid fa-file-pdf"></i> Export PDF</a>
+  <a class="nav-item" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</a>
+  <a class="nav-item" href="/"><i class="fa-solid fa-plus"></i> New Analysis</a>
+  <div class="sidebar-footer">
+    <div style="font-weight:600;color:var(--text);font-size:0.78rem;">BusinessPulse Pro</div>
+    <div style="margin-top:2px;">Powered by AI Analytics Engine</div>
+  </div>
+</nav>
+
+<!-- Main Wrapper -->
+<div class="main-wrap" id="printArea">
+  <!-- Top Bar -->
+  <div class="topbar">
+    <div class="d-flex align-items-center gap-3">
+      <button class="mobile-menu-btn" onclick="document.getElementById('sidebar').classList.toggle('open')">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+      <div>
+        <div class="topbar-title" id="topbar-biz">Business Dashboard</div>
+        <div class="topbar-meta" id="topbar-meta">Generated just now</div>
+      </div>
+    </div>
+    <div class="topbar-actions no-print">
+      <button class="btn-icon" onclick="toggleTheme()"><i class="fa-solid fa-circle-half-stroke"></i> <span id="themeLabel">Light</span></button>
+      <button class="btn-icon" onclick="window.print()"><i class="fa-solid fa-print"></i> Print</button>
+      <button class="btn-primary-sm" onclick="exportPDF()"><i class="fa-solid fa-file-pdf"></i> Export PDF</button>
+      <button class="btn-icon" onclick="location.href='/'"><i class="fa-solid fa-plus"></i> New</button>
+    </div>
+  </div>
+
+  <!-- Dashboard Content -->
+  <div class="dash-content" id="overview">
+
+    <!-- Business Header -->
+    <div class="biz-header" id="bizHeader">
+      <div class="d-flex align-items-center gap-3">
+        <div class="biz-avatar" id="bizAvatar"><i class="fa-solid fa-store"></i></div>
+        <div>
+          <div class="biz-name" id="bizName">—</div>
+          <div class="biz-meta" id="bizMeta">—</div>
+        </div>
+      </div>
+      <div class="d-flex align-items-center gap-3 flex-wrap">
+        <span class="biz-badge"><i class="fa-solid fa-circle me-1" style="font-size:0.5rem;"></i>LIVE</span>
+        <div class="timestamp" id="genTimestamp"></div>
+      </div>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="kpi-grid" id="kpiGrid">
+      <!-- Injected by JS -->
+    </div>
+
+    <!-- Charts Row 1 -->
+    <div id="charts">
+      <div class="section-heading"><i class="fa-solid fa-chart-line"></i> Visual Analytics</div>
+      <div class="row g-4 mb-2">
+        <div class="col-lg-8">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title"><i class="fa-solid fa-wave-square me-2" style="color:var(--brand)"></i>Revenue vs Expenses — Weekly Trend</div>
+                <div class="chart-sub">Daily performance comparison for the current week</div>
+              </div>
+              <span class="chart-badge">LIVE</span>
+            </div>
+            <div class="chart-wrapper"><canvas id="barChart"></canvas></div>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="chart-card h-100">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title"><i class="fa-solid fa-chart-pie me-2" style="color:var(--accent)"></i>Expense Breakdown</div>
+                <div class="chart-sub">Today's cost distribution</div>
+              </div>
+            </div>
+            <div class="chart-wrapper"><canvas id="pieChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-2">
+        <div class="col-lg-6">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title"><i class="fa-solid fa-chart-area me-2" style="color:var(--green)"></i>Monthly Revenue Trend</div>
+                <div class="chart-sub">12-month projection based on today's data</div>
+              </div>
+            </div>
+            <div class="chart-wrapper"><canvas id="lineChart"></canvas></div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title"><i class="fa-solid fa-chart-column me-2" style="color:var(--blue)"></i>Revenue vs Profit — Monthly</div>
+                <div class="chart-sub">Monthly revenue and profit comparison</div>
+              </div>
+            </div>
+            <div class="chart-wrapper"><canvas id="groupedBar"></canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row g-4 mb-4">
+        <div class="col-lg-6">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title"><i class="fa-solid fa-circle-dot me-2" style="color:var(--cyan)"></i>Revenue vs Expense Doughnut</div>
+                <div class="chart-sub">Today's financial split</div>
+              </div>
+            </div>
+            <div class="chart-wrapper-sm"><canvas id="doughnutChart"></canvas></div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="chart-card">
+            <div class="chart-header">
+              <div>
+                <div class="chart-title"><i class="fa-solid fa-radar me-2" style="color:var(--pink)"></i>Weekly Revenue Line</div>
+                <div class="chart-sub">Revenue curve for the week</div>
+              </div>
+            </div>
+            <div class="chart-wrapper-sm"><canvas id="weekLineChart"></canvas></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <!-- BUSINESS DIAGNOSIS — SPOTLIGHT SECTION                            -->
+    <!-- ═══════════════════════════════════════════════════════════════════ -->
+    <div id="diagnosis" style="margin-bottom:2rem;">
+
+      <!-- Section Header -->
+      <div style="
+        background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(249,115,22,0.06));
+        border: 1px solid rgba(239,68,68,0.3);
+        border-radius: 20px; padding: 1.8rem 2rem; margin-bottom: 1.5rem;
+        display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem;
+      ">
+        <div style="display:flex;align-items:center;gap:1rem;">
+          <div style="
+            width:54px;height:54px;border-radius:14px;flex-shrink:0;
+            background:linear-gradient(135deg,#ef4444,#f97316);
+            display:flex;align-items:center;justify-content:center;
+            font-size:1.4rem;color:#fff;
+            box-shadow:0 8px 24px rgba(239,68,68,0.35);
+          "><i class="fa-solid fa-stethoscope"></i></div>
+          <div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.4rem;font-weight:900;color:var(--text);letter-spacing:-0.5px;">
+              Business Diagnosis Report
+            </div>
+            <div style="font-size:0.82rem;color:var(--muted);margin-top:3px;">
+              Real flaws detected from your numbers · Exact ₹ impact · Step-by-step fixes
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:0.6rem;flex-wrap:wrap;">
+          <span id="diagFlaw-count" style="
+            background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.3);
+            border-radius:50px;padding:0.35rem 1rem;
+            font-size:0.75rem;font-weight:800;color:#ef4444;letter-spacing:0.5px;
+          ">— FLAWS FOUND</span>
+          <span id="diagLost-total" style="
+            background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);
+            border-radius:50px;padding:0.35rem 1rem;
+            font-size:0.75rem;font-weight:800;color:#f59e0b;letter-spacing:0.5px;
+          ">CALCULATING LOSS…</span>
+        </div>
+      </div>
+
+      <!-- Revenue Gap Summary Bar -->
+      <div id="diagSummaryBar" style="
+        background:var(--card-bg);border:1px solid var(--border);
+        border-radius:16px;padding:1.4rem 1.8rem;margin-bottom:1.4rem;
+        display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:1.2rem;
+      ">
+        <!-- filled by JS -->
+      </div>
+
+      <!-- Diagnosis Cards Grid -->
+      <div id="diagnosisContainer" style="display:flex;flex-direction:column;gap:1rem;"></div>
+
+      <!-- Potential Unlock Card -->
+      <div id="potentialCard" style="
+        background: linear-gradient(135deg, rgba(16,185,129,0.1), rgba(99,102,241,0.08));
+        border: 2px solid rgba(16,185,129,0.3);
+        border-radius: 20px; padding: 2rem;
+        margin-top: 1.5rem; text-align:center;
+      ">
+        <div style="font-size:1rem;color:var(--green);font-weight:700;margin-bottom:0.4rem;">
+          <i class="fa-solid fa-rocket me-2"></i>Total Unlockable Monthly Revenue
+        </div>
+        <div id="potentialNum" style="
+          font-family:'Plus Jakarta Sans',sans-serif;
+          font-size:3rem;font-weight:900;
+          background:linear-gradient(135deg,#10b981,#6366f1);
+          -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+          line-height:1;margin:0.5rem 0;
+        ">₹—</div>
+        <div id="potentialSub" style="font-size:0.85rem;color:var(--muted);max-width:500px;margin:0 auto;line-height:1.6;"></div>
+      </div>
+    </div>
+
+    <!-- Insights + Health -->
+    <div class="row g-4" id="insights">
+      <div class="col-lg-8">
+        <div class="section-heading"><i class="fa-solid fa-lightbulb"></i> AI Business Insights</div>
+        <div id="insightsContainer"></div>
+      </div>
+      <div class="col-lg-4" id="health">
+        <!-- Health Score -->
+        <div class="section-heading"><i class="fa-solid fa-heart-pulse"></i> Health Score</div>
+        <div class="health-card glow-brand">
+          <div class="health-ring">
+            <svg width="160" height="160" viewBox="0 0 160 160">
+              <circle cx="80" cy="80" r="65" fill="none" stroke="var(--surface2)" stroke-width="10"/>
+              <circle id="healthCircle" cx="80" cy="80" r="65" fill="none" stroke="#6366f1" stroke-width="10"
+                stroke-dasharray="408.41" stroke-dashoffset="408.41" stroke-linecap="round"
+                style="transition: stroke-dashoffset 1.8s ease;"/>
+            </svg>
+            <div class="health-ring-center">
+              <div class="health-score-num" id="healthNum" style="color:#6366f1">—</div>
+              <div class="health-score-label">/ 100</div>
+            </div>
+          </div>
+          <div class="health-status" id="healthLabel">—</div>
+          <div style="font-size:0.75rem;color:var(--muted);margin-bottom:1rem;" id="healthDesc">Analysing…</div>
+          <div class="health-bar-wrap">
+            <div class="health-bar-fill" id="healthBar" style="width:0%;background:var(--brand)"></div>
+          </div>
+        </div>
+
+        <!-- Key Metrics -->
+        <div class="chart-card mt-3">
+          <div class="chart-title mb-3"><i class="fa-solid fa-table-list me-2" style="color:var(--brand)"></i>Key Metrics</div>
+          <table class="stats-table" id="metricsTable"></table>
+        </div>
+
+        <!-- Performance Bars -->
+        <div class="chart-card mt-3">
+          <div class="chart-title mb-3"><i class="fa-solid fa-sliders me-2" style="color:var(--accent)"></i>Performance Indicators</div>
+          <div id="perfBars"></div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /dash-content -->
+</div><!-- /main-wrap -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+// ── Load Data ──────────────────────────────────────────────────────────────────
+const D = JSON.parse(localStorage.getItem('bp_analytics') || 'null');
+if (!D) { window.location.href = '/'; }
+
+// ── Theme ─────────────────────────────────────────────────────────────────────
+let theme = localStorage.getItem('bp_theme') || 'dark';
+document.documentElement.setAttribute('data-theme', theme);
+document.getElementById('themeLabel').textContent = theme === 'dark' ? 'Light' : 'Dark';
+function toggleTheme() {
+  theme = theme === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', theme);
+  localStorage.setItem('bp_theme', theme);
+  document.getElementById('themeLabel').textContent = theme === 'dark' ? 'Light' : 'Dark';
+}
+
+// ── Scroll ─────────────────────────────────────────────────────────────────────
+function scrollTo(id) {
+  document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── Format ─────────────────────────────────────────────────────────────────────
+const fmt = (n) => '₹' + Number(n).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+const fmtK = (n) => n >= 100000 ? '₹' + (n/100000).toFixed(1) + 'L' : n >= 1000 ? '₹' + (n/1000).toFixed(1) + 'K' : fmt(n);
+
+// ── Animate Counter ────────────────────────────────────────────────────────────
+function animateCount(el, end, prefix='₹', suffix='', duration=1400) {
+  const start = 0;
+  const step = (timestamp) => {
+    if (!startTime) startTime = timestamp;
+    const progress = Math.min((timestamp - startTime) / duration, 1);
+    const ease = 1 - Math.pow(1 - progress, 3);
+    const val = Math.round(start + (end - start) * ease);
+    el.textContent = prefix ? prefix + val.toLocaleString('en-IN') : val.toLocaleString('en-IN') + suffix;
+    if (progress < 1) requestAnimationFrame(step);
+  };
+  let startTime = null;
+  requestAnimationFrame(step);
+}
+
+// ── Business Header ────────────────────────────────────────────────────────────
+const typeIcons = {
+  'cafe':'fa-mug-hot','restaurant':'fa-utensils','biryani shop':'fa-bowl-food',
+  'bakery':'fa-bread-slice','grocery store':'fa-cart-shopping','medical store':'fa-pills',
+  'clothing store':'fa-shirt','mobile shop':'fa-mobile-screen','salon':'fa-scissors',
+  'hardware shop':'fa-wrench','juice center':'fa-lemon','supermarket':'fa-store',
+  'electronics store':'fa-plug','pharmacy':'fa-capsules','sweet shop':'fa-candy-cane'
+};
+const btype = D.business_type.toLowerCase();
+const icon = typeIcons[btype] || 'fa-store';
+document.getElementById('bizAvatar').innerHTML = `<i class="fa-solid ${icon}"></i>`;
+document.getElementById('bizName').textContent = D.business_name;
+document.getElementById('bizMeta').textContent = `${D.owner_name} · ${D.business_type} · ${D.city}`;
+document.getElementById('genTimestamp').innerHTML = `<i class="fa-regular fa-clock me-1"></i>${D.generated_at}`;
+document.getElementById('topbar-biz').textContent = D.business_name;
+document.getElementById('topbar-meta').textContent = `${D.business_type} · ${D.city}`;
+
+// ── KPI Cards ─────────────────────────────────────────────────────────────────
+const kpis = [
+  { label:'Today\'s Revenue',      val: D.revenue,          prefix:'₹', icon:'fa-arrow-trend-up',      color:'#10b981', bg:'rgba(16,185,129,0.1)',  change:'vs yesterday', badge:'kpi-up',   changetxt:'+₹—' },
+  { label:'Today\'s Expenses',     val: D.expenses,         prefix:'₹', icon:'fa-arrow-trend-down',    color:'#ef4444', bg:'rgba(239,68,68,0.1)',   change:'operating cost',badge:'kpi-neutral',changetxt:'' },
+  { label:'Today\'s Profit',       val: D.profit,           prefix:'₹', icon:'fa-sack-dollar',         color:'#6366f1', bg:'rgba(99,102,241,0.1)',  change:'net earnings',  badge: D.profit>=0?'kpi-up':'kpi-down', changetxt:'' },
+  { label:'Profit Margin',         val: D.profit_margin,    prefix:'',  icon:'fa-percent',             color:'#f59e0b', bg:'rgba(245,158,11,0.1)',  change:'of revenue',    badge:'kpi-neutral',changetxt:'%', isPercent:true },
+  { label:'Revenue / Customer',    val: D.revenue_per_customer, prefix:'₹', icon:'fa-user-tag',       color:'#3b82f6', bg:'rgba(59,130,246,0.1)',  change:'per head value',badge:'kpi-up',   changetxt:'' },
+  { label:'Average Bill',          val: D.avg_bill,         prefix:'₹', icon:'fa-receipt',             color:'#8b5cf6', bg:'rgba(139,92,246,0.1)', change:'per transaction',badge:'kpi-up',  changetxt:'' },
+  { label:'Monthly Revenue Est.',  val: D.est_monthly_revenue, prefix:'₹', icon:'fa-calendar-days',  color:'#06b6d4', bg:'rgba(6,182,212,0.1)',   change:'26 working days',badge:'kpi-up',  changetxt:'' },
+  { label:'Monthly Profit Est.',   val: D.est_monthly_profit,  prefix:'₹', icon:'fa-piggy-bank',     color:'#ec4899', bg:'rgba(236,72,153,0.1)',  change:'estimated',     badge: D.est_monthly_profit>=0?'kpi-up':'kpi-down', changetxt:'' },
+];
+
+const grid = document.getElementById('kpiGrid');
+kpis.forEach((k, i) => {
+  const card = document.createElement('div');
+  card.className = 'kpi-card';
+  card.style.setProperty('--kpi-color', k.color);
+  card.style.setProperty('--kpi-bg', k.bg);
+  const displayVal = k.isPercent ? (k.val + '%') : (k.prefix + Math.abs(Math.round(k.val)).toLocaleString('en-IN'));
+  card.innerHTML = `
+    <div class="kpi-icon"><i class="fa-solid ${k.icon}"></i></div>
+    <div class="kpi-value" id="kpi${i}">${displayVal}</div>
+    <div class="kpi-label">${k.label}</div>
+    <div class="kpi-change ${k.badge}">
+      <i class="fa-solid ${k.badge==='kpi-up'?'fa-arrow-up':k.badge==='kpi-down'?'fa-arrow-down':'fa-minus'}"></i>
+      ${k.change}
+    </div>
+  `;
+  grid.appendChild(card);
+  if (!k.isPercent) setTimeout(() => animateCount(document.getElementById(`kpi${i}`), Math.abs(k.val), k.prefix, '', 1200), 100 + i * 80);
+});
+
+// ── Chart.js Global Defaults ───────────────────────────────────────────────────
+Chart.defaults.color = theme === 'dark' ? '#64748b' : '#94a3b8';
+Chart.defaults.borderColor = theme === 'dark' ? 'rgba(99,102,241,0.1)' : 'rgba(99,102,241,0.12)';
+Chart.defaults.font.family = "'Inter', sans-serif";
+Chart.defaults.font.size = 11;
+
+const gridColor = theme === 'dark' ? 'rgba(99,102,241,0.08)' : 'rgba(99,102,241,0.1)';
+const tooltipBg = theme === 'dark' ? '#1a1d2e' : '#fff';
+const tooltipText = theme === 'dark' ? '#e2e8f0' : '#0f172a';
+
+const tooltipDefaults = {
+  backgroundColor: tooltipBg,
+  titleColor: tooltipText,
+  bodyColor: tooltipText,
+  borderColor: 'rgba(99,102,241,0.3)',
+  borderWidth: 1,
+  padding: 10,
+  cornerRadius: 8,
+};
+
+// Filter nulls for charts
+const validDays = D.weekly_days.filter((_, i) => D.weekly_revenue[i] !== null);
+const validRev  = D.weekly_revenue.filter(v => v !== null);
+const validExp  = D.weekly_expense.filter(v => v !== null);
+
+// 1. Bar Chart — Weekly Revenue vs Expense
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: validDays,
+    datasets: [
+      { label: 'Revenue', data: validRev, backgroundColor: 'rgba(99,102,241,0.7)', borderRadius: 6, borderSkipped: false },
+      { label: 'Expenses', data: validExp, backgroundColor: 'rgba(239,68,68,0.5)', borderRadius: 6, borderSkipped: false },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position:'top' }, tooltip: tooltipDefaults },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { color: '#64748b' } },
+      y: {
+        grid: { color: gridColor }, ticks: { color: '#64748b',
+          callback: v => '₹' + (v>=1000 ? (v/1000).toFixed(0)+'K' : v)
+        }
+      }
+    }
+  }
+});
+
+// 2. Pie Chart — Expense Breakdown
+const pieColors = ['#6366f1','#ef4444','#f59e0b','#10b981','#3b82f6','#ec4899'];
+new Chart(document.getElementById('pieChart'), {
+  type: 'pie',
+  data: { labels: D.expense_labels, datasets: [{ data: D.expense_breakdown, backgroundColor: pieColors, borderWidth: 2, borderColor: tooltipBg }] },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 10, boxWidth: 10, font: { size: 10 } } },
+      tooltip: { ...tooltipDefaults, callbacks: { label: ctx => ` ₹${ctx.parsed.toLocaleString('en-IN')}` } }
+    }
+  }
+});
+
+// 3. Line Chart — Monthly Revenue
+new Chart(document.getElementById('lineChart'), {
+  type: 'line',
+  data: {
+    labels: D.months,
+    datasets: [{
+      label: 'Revenue', data: D.monthly_revenue,
+      borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,0.08)',
+      borderWidth: 2.5, fill: true, tension: 0.4, pointBackgroundColor: '#10b981',
+      pointRadius: 3, pointHoverRadius: 6
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: tooltipDefaults },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { color: '#64748b' } },
+      y: { grid: { color: gridColor }, ticks: { color: '#64748b', callback: v => fmtK(v).replace('₹','₹') } }
+    }
+  }
+});
+
+// 4. Grouped Bar — Monthly Revenue vs Profit
+new Chart(document.getElementById('groupedBar'), {
+  type: 'bar',
+  data: {
+    labels: D.months,
+    datasets: [
+      { label: 'Revenue', data: D.monthly_revenue, backgroundColor: 'rgba(59,130,246,0.7)', borderRadius: 4 },
+      { label: 'Profit',  data: D.monthly_profit,  backgroundColor: 'rgba(16,185,129,0.7)', borderRadius: 4 },
+    ]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { position:'top' }, tooltip: tooltipDefaults },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { color: '#64748b' } },
+      y: { grid: { color: gridColor }, ticks: { color: '#64748b', callback: v => fmtK(v) } }
+    }
+  }
+});
+
+// 5. Doughnut — Revenue vs Expense
+new Chart(document.getElementById('doughnutChart'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Revenue', 'Expenses'],
+    datasets: [{
+      data: [D.revenue, D.expenses],
+      backgroundColor: ['rgba(99,102,241,0.8)', 'rgba(239,68,68,0.6)'],
+      borderColor: tooltipBg, borderWidth: 3, hoverOffset: 8
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false, cutout: '72%',
+    plugins: {
+      legend: { position: 'bottom', labels: { padding: 14, boxWidth: 10 } },
+      tooltip: { ...tooltipDefaults, callbacks: { label: ctx => ` ₹${ctx.parsed.toLocaleString('en-IN')}` } }
+    }
+  }
+});
+
+// 6. Weekly Line
+new Chart(document.getElementById('weekLineChart'), {
+  type: 'line',
+  data: {
+    labels: validDays,
+    datasets: [{
+      label: 'Revenue', data: validRev,
+      borderColor: '#ec4899', backgroundColor: 'rgba(236,72,153,0.08)',
+      fill: true, tension: 0.5, borderWidth: 2.5,
+      pointBackgroundColor: '#ec4899', pointRadius: 4
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: tooltipDefaults },
+    scales: {
+      x: { grid: { color: gridColor }, ticks: { color: '#64748b' } },
+      y: { grid: { color: gridColor }, ticks: { color: '#64748b', callback: v => fmtK(v) } }
+    }
+  }
+});
+
+// ── Health Score ────────────────────────────────────────────────────────────────
+setTimeout(() => {
+  const score = D.health_score;
+  const color = D.health_color;
+  document.getElementById('healthNum').textContent = Math.round(score);
+  document.getElementById('healthNum').style.color = color;
+  document.getElementById('healthLabel').textContent = D.health_label;
+  document.getElementById('healthLabel').style.color = color;
+
+  const descMap = {
+    'Excellent':        'Your business is performing exceptionally well across all key metrics.',
+    'Good':             'Strong performance with room for targeted improvement.',
+    'Average':          'Stable performance — focus on cost control and revenue growth.',
+    'Needs Improvement':'Immediate attention needed on expenses and revenue strategy.'
+  };
+  document.getElementById('healthDesc').textContent = descMap[D.health_label] || '';
+
+  const circ = document.getElementById('healthCircle');
+  const circumference = 408.41;
+  const offset = circumference - (score / 100) * circumference;
+  circ.style.strokeDashoffset = offset;
+  circ.style.stroke = color;
+
+  const bar = document.getElementById('healthBar');
+  bar.style.width = score + '%';
+  bar.style.background = color;
+}, 400);
+
+// ── Metrics Table ───────────────────────────────────────────────────────────────
+const metrics = [
+  ['Today\'s Revenue',    fmt(D.revenue)],
+  ['Today\'s Expenses',   fmt(D.expenses)],
+  ['Today\'s Profit',     fmt(D.profit)],
+  ['Profit Margin',       D.profit_margin + '%'],
+  ['Revenue/Customer',    fmt(D.revenue_per_customer)],
+  ['Average Bill',        fmt(D.avg_bill)],
+  ['Total Customers',     D.customers],
+  ['Best Seller',         D.best_item],
+  ['Monthly Rev. Est.',   fmtK(D.est_monthly_revenue)],
+  ['Monthly Profit Est.', fmtK(D.est_monthly_profit)],
+];
+const tbl = document.getElementById('metricsTable');
+metrics.forEach(([label, val]) => {
+  const tr = tbl.insertRow();
+  tr.insertCell().textContent = label;
+  tr.insertCell().textContent = val;
+});
+
+// ── Performance Bars ────────────────────────────────────────────────────────────
+const perfItems = [
+  { label: 'Profit Margin', val: Math.min(100, D.profit_margin * 2), display: D.profit_margin + '%', color: '#10b981' },
+  { label: 'Revenue Efficiency', val: Math.min(100, (D.revenue / 20000) * 100), display: fmtK(D.revenue), color: '#6366f1' },
+  { label: 'Cost Control', val: Math.min(100, Math.max(0, 100 - D.expense_ratio)), display: (100 - D.expense_ratio).toFixed(0) + '%', color: '#3b82f6' },
+  { label: 'Customer Volume', val: Math.min(100, (D.customers / 200) * 100), display: D.customers + ' cust.', color: '#f59e0b' },
+  { label: 'Business Health', val: D.health_score, display: D.health_score + '/100', color: D.health_color },
+];
+const perfContainer = document.getElementById('perfBars');
+perfItems.forEach(p => {
+  const row = document.createElement('div');
+  row.className = 'metric-row';
+  row.innerHTML = `
+    <div class="metric-label">${p.label}<span>${p.display}</span></div>
+    <div class="metric-bar"><div class="metric-fill" id="pbar_${p.label.replace(/\s+/g,'')}" style="width:0%;background:${p.color}"></div></div>
+  `;
+  perfContainer.appendChild(row);
+});
+setTimeout(() => {
+  perfItems.forEach(p => {
+    const el = document.getElementById('pbar_' + p.label.replace(/\s+/g,''));
+    if (el) el.style.width = p.val + '%';
+  });
+}, 600);
+
+// ── Business Diagnosis ─────────────────────────────────────────────────────────
+const diagContainer = document.getElementById('diagnosisContainer');
+const diag = D.diagnosis || [];
+
+// Risk colour map
+const riskMap = {
+  'Critical': { badge:'risk-critical', bar:'#ef4444', border:'rgba(239,68,68,0.25)' },
+  'High':     { badge:'risk-high',     bar:'#f97316', border:'rgba(249,115,22,0.25)' },
+  'Medium':   { badge:'risk-medium',   bar:'#f59e0b', border:'rgba(245,158,11,0.25)' },
+  'Low':      { badge:'risk-low',      bar:'#3b82f6', border:'rgba(59,130,246,0.25)' },
+};
+
+// Calculate total monthly loss number for header
+let totalMonthlyLoss = 0;
+let totalMonthlyGain = 0;
+diag.forEach(d => {
+  // extract first ₹ number from impact string
+  const matches = d.impact.match(/₹([\d,]+)/g) || [];
+  if (matches.length > 0) {
+    const num = parseInt(matches[matches.length-1].replace(/[₹,]/g,''));
+    if (!isNaN(num)) totalMonthlyGain += num;
+  }
+  if (d.risk === 'Critical') totalMonthlyLoss += D.revenue * 26 * 0.15;
+  else if (d.risk === 'High') totalMonthlyLoss += D.revenue * 26 * 0.08;
+  else if (d.risk === 'Medium') totalMonthlyLoss += D.revenue * 26 * 0.04;
+});
+totalMonthlyLoss = Math.round(totalMonthlyLoss);
+totalMonthlyGain = Math.round(totalMonthlyGain);
+
+// Update header badges
+document.getElementById('diagFlaw-count').textContent = `${diag.length} FLAWS FOUND`;
+document.getElementById('diagLost-total').textContent = `EST. ₹${totalMonthlyLoss.toLocaleString('en-IN')}/MONTH BEING LOST`;
+
+// Summary bar
+const summaryItems = [
+  { label: 'Current Monthly Revenue', value: fmtK(D.est_monthly_revenue), color: '#6366f1', icon: 'fa-chart-bar' },
+  { label: 'Monthly Profit (Current)', value: fmtK(D.est_monthly_profit), color: D.est_monthly_profit > 0 ? '#10b981' : '#ef4444', icon: 'fa-sack-dollar' },
+  { label: 'Estimated Monthly Loss', value: '₹' + totalMonthlyLoss.toLocaleString('en-IN'), color: '#ef4444', icon: 'fa-arrow-trend-down' },
+  { label: 'Potential Monthly Gain', value: '+₹' + totalMonthlyGain.toLocaleString('en-IN'), color: '#10b981', icon: 'fa-rocket' },
+];
+const summaryBar = document.getElementById('diagSummaryBar');
+summaryItems.forEach(s => {
+  const el = document.createElement('div');
+  el.style.cssText = 'text-align:center;padding:0.5rem;';
+  el.innerHTML = `
+    <div style="font-size:0.68rem;color:var(--muted);font-weight:600;letter-spacing:0.5px;margin-bottom:4px;">
+      <i class="fa-solid ${s.icon} me-1" style="color:${s.color}"></i>${s.label}
+    </div>
+    <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.3rem;font-weight:900;color:${s.color};">${s.value}</div>
+  `;
+  summaryBar.appendChild(el);
+});
+
+// Render each diagnosis card
+diag.forEach((d, idx) => {
+  const rm = riskMap[d.risk] || riskMap['Low'];
+  const stepsHtml = (d.steps || []).map((s, i) => `
+    <li>
+      <div class="step-num">${i+1}</div>
+      <span>${s}</span>
+    </li>
+  `).join('');
+
+  const card = document.createElement('div');
+  card.style.cssText = `
+    background:var(--card-bg);
+    border:1px solid ${rm.border};
+    border-left:4px solid ${d.risk_color};
+    border-radius:16px;overflow:hidden;
+    transition:transform 0.2s,box-shadow 0.2s;
+  `;
+  card.onmouseenter = () => { card.style.transform='translateY(-2px)'; card.style.boxShadow='0 8px 32px rgba(0,0,0,0.3)'; };
+  card.onmouseleave = () => { card.style.transform=''; card.style.boxShadow=''; };
+
+  card.innerHTML = `
+    <!-- Card Header (always visible, clickable) -->
+    <div onclick="toggleDiag(${idx})" style="
+      padding:1.2rem 1.5rem;cursor:pointer;
+      display:flex;align-items:center;gap:1rem;
+      background:${d.risk_bg};
+    ">
+      <div style="
+        width:44px;height:44px;border-radius:12px;flex-shrink:0;
+        background:${d.risk_color}22;border:1px solid ${d.risk_color}44;
+        display:flex;align-items:center;justify-content:center;
+        font-size:1.1rem;color:${d.risk_color};
+      "><i class="fa-solid ${d.icon}"></i></div>
+
+      <div style="flex:1;min-width:0;">
+        <div style="font-size:0.95rem;font-weight:800;color:var(--text);font-family:'Plus Jakarta Sans',sans-serif;">
+          ${d.title}
+        </div>
+        <div style="font-size:0.75rem;color:var(--muted);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">
+          ${d.flaw.substring(0,90)}…
+        </div>
+      </div>
+
+      <div style="display:flex;align-items:center;gap:0.6rem;flex-shrink:0;">
+        <span class="risk-badge ${rm.badge}">${d.risk}</span>
+        <i class="fa-solid fa-chevron-down" id="chevron-${idx}" style="color:var(--muted);font-size:0.75rem;transition:transform 0.3s;"></i>
+      </div>
+    </div>
+
+    <!-- Expandable Body -->
+    <div id="diagBody-${idx}" style="display:none;padding:1.5rem;border-top:1px solid ${rm.border};">
+      <div class="row g-4">
+
+        <!-- Left: Flaw + Fix -->
+        <div class="col-lg-7">
+          <!-- THE FLAW -->
+          <div style="
+            background:rgba(239,68,68,0.06);border:1px solid rgba(239,68,68,0.15);
+            border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem;
+          ">
+            <div style="font-size:0.65rem;font-weight:800;letter-spacing:1px;color:#ef4444;text-transform:uppercase;margin-bottom:0.5rem;">
+              <i class="fa-solid fa-circle-xmark me-1"></i> The Problem
+            </div>
+            <div style="font-size:0.83rem;color:var(--text);line-height:1.65;">${d.flaw}</div>
+          </div>
+
+          <!-- THE FIX -->
+          <div style="
+            background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.15);
+            border-radius:12px;padding:1rem 1.2rem;margin-bottom:1rem;
+          ">
+            <div style="font-size:0.65rem;font-weight:800;letter-spacing:1px;color:#10b981;text-transform:uppercase;margin-bottom:0.5rem;">
+              <i class="fa-solid fa-circle-check me-1"></i> The Fix
+            </div>
+            <div style="font-size:0.83rem;color:var(--text);line-height:1.65;">${d.fix}</div>
+          </div>
+        </div>
+
+        <!-- Right: Impact + Steps -->
+        <div class="col-lg-5">
+          <!-- ₹ IMPACT BOX -->
+          <div style="
+            background:linear-gradient(135deg,rgba(16,185,129,0.12),rgba(99,102,241,0.08));
+            border:2px solid rgba(16,185,129,0.3);border-radius:14px;
+            padding:1.2rem;text-align:center;margin-bottom:1rem;
+          ">
+            <div style="font-size:0.65rem;font-weight:800;letter-spacing:1px;color:#10b981;text-transform:uppercase;margin-bottom:0.5rem;">
+              <i class="fa-solid fa-indian-rupee-sign me-1"></i> Financial Impact
+            </div>
+            <div style="font-family:'Plus Jakarta Sans',sans-serif;font-size:1.05rem;font-weight:800;color:var(--text);line-height:1.4;">
+              ${d.impact}
+            </div>
+          </div>
+
+          <!-- ACTION STEPS -->
+          <div style="
+            background:var(--surface2);border:1px solid var(--border);
+            border-radius:14px;padding:1rem 1.2rem;
+          ">
+            <div style="font-size:0.65rem;font-weight:800;letter-spacing:1px;color:var(--brand);text-transform:uppercase;margin-bottom:0.7rem;">
+              <i class="fa-solid fa-list-check me-1"></i> Action Steps
+            </div>
+            <ul class="diag-steps">${stepsHtml}</ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  `;
+  diagContainer.appendChild(card);
+});
+
+// Toggle diagnosis card
+function toggleDiag(idx) {
+  const body = document.getElementById(`diagBody-${idx}`);
+  const chevron = document.getElementById(`chevron-${idx}`);
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  chevron.style.transform = isOpen ? '' : 'rotate(180deg)';
+}
+
+// Auto-open first card
+setTimeout(() => { if (diag.length > 0) toggleDiag(0); }, 500);
+
+// Potential Unlock card
+const potentialGain = totalMonthlyGain;
+document.getElementById('potentialNum').textContent = '₹' + potentialGain.toLocaleString('en-IN');
+document.getElementById('potentialSub').textContent =
+  `By fixing the ${diag.length} business flaws identified above, ${D.business_name} could unlock an additional ₹${potentialGain.toLocaleString('en-IN')} per month — that's ₹${(potentialGain*12).toLocaleString('en-IN')} per year — without any major investment, just smarter operations.`;
+
+// ── AI Insights ─────────────────────────────────────────────────────────────────
+const container = document.getElementById('insightsContainer');
+const impactClass = { 'High Impact':'impact-high','Medium Impact':'impact-medium','Maintain':'impact-low','Growth Opportunity':'impact-growth','Critical':'impact-high' };
+
+D.insights.forEach((ins, i) => {
+  const card = document.createElement('div');
+  card.className = 'insight-card';
+  card.style.animationDelay = i * 0.08 + 's';
+  card.innerHTML = `
+    <div class="insight-icon" style="background:${ins.bg};color:${ins.color}">
+      <i class="fa-solid ${ins.icon}"></i>
+    </div>
+    <div>
+      <div class="insight-title">${ins.title}</div>
+      <div class="insight-text">${ins.text}</div>
+      <span class="impact-badge ${impactClass[ins.impact] || 'impact-low'}">${ins.impact}</span>
+    </div>
+  `;
+  container.appendChild(card);
+});
+
+// ── PDF Export ─────────────────────────────────────────────────────────────────
+function exportPDF() {
+  const el = document.getElementById('printArea');
+  const opt = {
+    margin: 0.3, filename: `${D.business_name}_BusinessPulse_Report.pdf`,
+    image: { type: 'jpeg', quality: 0.98 },
+    html2canvas: { scale: 1.8, useCORS: true },
+    jsPDF: { unit: 'in', format: 'a3', orientation: 'landscape' }
+  };
+  html2pdf().set(opt).from(el).save();
+}
+</script>
+</body>
+</html>
